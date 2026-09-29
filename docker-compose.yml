@@ -1,0 +1,14 @@
+# Optional: PostgreSQL for local development (SRS §9.3). SQLite works out of the box without this.
+# Start:  docker compose up -d db
+# Then set in backend/.env:  DATABASE_URL=postgresql+psycopg://lishebora:lishebora@localhost:5432/lishebora
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: lishebora
+      POSTGRES_PASSWORD: lishebora
+      POSTGRES_DB: lishebora
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+volumes:
+  pgdata:

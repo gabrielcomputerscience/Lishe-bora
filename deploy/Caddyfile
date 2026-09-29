@@ -1,0 +1,30 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	# API straight to FastAPI; everything else to the Next.js front end.
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+	handle {
+		reverse_proxy frontend:3000
+	}
+	request_body {
+		max_size 12MB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(self), geolocation=(self), microphone=()"
+		-Server
+	}
+	log {
+		output file /data/access.log {
+			roll_size 20MiB
+			roll_keep 10
+		}
+	}
+}

@@ -1,0 +1,71 @@
+# LisheBora pilot deployment: PostgreSQL/PostGIS, API, background worker, web front end and Caddy (automatic HTTPS).
+#   cp deploy/.env.example deploy/.env   (fill in every value)
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
+name: lishebora
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 10
+
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      COOKIE_SECURE: "true"
+      TRUST_PROXY: "true"
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      CORS_ORIGINS: https://${DOMAIN}
+      PUBLIC_SITE_URL: https://${DOMAIN}
+    volumes: [storage:/data/storage]
+    depends_on: { db: { condition: service_healthy } }
+
+  worker:
+    build: ../backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      COOKIE_SECURE: "true"
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      PUBLIC_SITE_URL: https://${DOMAIN}
+    command: ["python", "-m", "app.jobs", "all", "--loop", "60"]
+    volumes: [storage:/data/storage]
+    healthcheck: { disable: true }
+    depends_on: { backend: { condition: service_healthy } }
+
+  frontend:
+    build:
+      context: ../frontend
+      args: { BACKEND_URL: "http://backend:8000" }
+    restart: unless-stopped
+    depends_on: [backend]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: "${DOMAIN}", ACME_EMAIL: "${ACME_EMAIL}" }
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [frontend, backend]
+
+volumes:
+  pgdata:
+  storage:
+  caddy_data:
+  caddy_config:

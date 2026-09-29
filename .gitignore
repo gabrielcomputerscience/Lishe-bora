@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/.env
+backend/lishebora.db
+backend/storage/*
+!backend/storage/.gitkeep
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+# IDE
+.idea/workspace.xml
+.idea/shelf/
+
+# deployment secrets
+deploy/.env
