@@ -5,16 +5,7 @@ import { PageHead, Pill } from "@/components/ui";
 import { get } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { Paged, Supplier } from "@/lib/types";
-
-const ROADMAP = [
-  ["Phase 1 · Platform foundation", "Sign-in, roles and data scope, supplier registry, documents, audit trail, public website", "now"],
-  ["Phase 2 · Demand & budget", "School demand, menus, stock, consolidation, procurement plans, budget controls, approval engine", "now"],
-  ["Phase 3 · e-Procurement", "RFQs, sealed bids, evaluation, approvals, awards, POs, contracts", "now"],
-  ["Phase 4 · Supply-chain fulfilment", "Aggregation, quality, inventory, dispatch, e-proof of delivery (offline), exceptions, traceability", "now"],
-  ["Phase 5 · Finance & performance", "Three-way match, payments, complaints, supplier scorecards, MEAL dashboards and exports", "now"],
-  ["Phase 6 · Advanced & integrations", "Installable offline app, QR labels & recall, GIS map & routes, forecasting & price intelligence, risk flags, payment files, statement reconciliation, IFMIS export", "now"],
-  ["Phase 7 · Pilot readiness", "PostgreSQL-verified, SMS/email outbox (Africa's Talking, SMTP), background worker & reminders, CSRF and rate limits, school/staff CSV import, Docker + HTTPS deployment, backups", "now"],
-];
+import { menuFor } from "@/lib/menu";
 
 export default function Dashboard() {
   const { me, can } = useAuth();
@@ -24,7 +15,7 @@ export default function Dashboard() {
   useEffect(() => {
     get<{ waiting_for_me: unknown[] }>("/workflow/inbox").then((d) => setInbox(d.waiting_for_me.length)).catch(() => {});
     if (me?.supplier_id) get<Supplier>("/suppliers/me").then(setMine).catch(() => {});
-    if (can("sup:view")) get<Paged<Supplier> & { counts: Record<string, number> }>("/suppliers?size=5&status=submitted").then(setReg).catch(() => {});
+    if (me && menuFor(me, can).some((i) => i.href === "/app/suppliers")) get<Paged<Supplier> & { counts: Record<string, number> }>("/suppliers?size=5&status=submitted").then(setReg).catch(() => {});
   }, [me, can]);
   if (!me) return null;
   return (
@@ -55,10 +46,13 @@ export default function Dashboard() {
             <tbody>{reg.items.map((s) => <tr key={s.id}><td><b>{s.legal_name}</b></td><td>{s.supplier_type}</td><td>{s.county_name}</td><td>{s.documents.length}</td>
               <td className="r"><Link className="btn sm primary" href={`/app/suppliers/${s.id}`}>Review</Link></td></tr>)}</tbody></table></div>
         </div>)}
-      <div className="card"><h2>Build roadmap</h2>
-        {ROADMAP.map(([t, d, s]) => <div key={t} className="row" style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
-          <div><b>{t}</b><div className="small muted">{d}</div></div><span className="spacer" />
-          <Pill status={s === "now" ? "active" : "draft"} label={s === "now" ? "In this build" : "Planned"} /></div>)}
+      <div className="card"><h2>Your work</h2>
+        <p className="small muted" style={{ marginTop: -4 }}>The parts of LisheBora used in your role.</p>
+        <div className="grid g3" style={{ marginTop: 10 }}>
+          {menuFor(me, can).filter((i) => i.hint && !["/app", "/app/notifications", "/app/profile"].includes(i.href)).map((i) => (
+            <Link key={i.href} href={i.href} className="card" style={{ textDecoration: "none", color: "inherit", boxShadow: "none", border: "1px solid var(--line)" }}>
+              <b style={{ color: "var(--green-900)" }}>{i.label}</b><div className="small muted">{i.hint}</div></Link>))}
+        </div>
       </div>
     </>
   );

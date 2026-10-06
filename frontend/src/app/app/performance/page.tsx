@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ErrorBox, PageHead, Pill } from "@/components/ui";
 import { get } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { pct, type Scorecard } from "@/lib/finance";
 import { fmtDate, human } from "@/lib/format";
 
@@ -22,7 +23,9 @@ export default function Performance() {
   const [sel, setSel] = useState<Scorecard | null>(null);
   const [err, setErr] = useState<unknown>(null);
   const [counties, setCounties] = useState<County[]>([]);
-  useEffect(() => { get<County[]>("/performance/counties").then(setCounties).catch(() => {}); }, []);
+  const { me, can } = useAuth();
+  const buyerView = !!me && !me.supplier_id && can("meal:view", "cmp:view");   // county performance is for buyer-side staff
+  useEffect(() => { if (buyerView) get<County[]>("/performance/counties").then(setCounties).catch(() => {}); }, [buyerView]);
   useEffect(() => { get<Scorecard[]>("/performance/suppliers").then((r) => { setRows(r); if (r.length === 1) open(r[0].supplier_id); }).catch(setErr); }, []);
   const open = (id: string) => get<Scorecard>(`/performance/suppliers/${id}`).then(setSel).catch(setErr);
   return (

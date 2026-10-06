@@ -14,6 +14,10 @@ const LINK: Record<string, (f: Flag) => string> = { supplier: (f) => `/app/suppl
 
 export default function Risk() {
   const { can } = useAuth();
+  // only link to records this person may open (e.g. warehouse staff see risk flags but not the supplier registry)
+  const allowed: Record<string, boolean> = { supplier: can("sup:view"), batch: can("agg:view", "inv:view"), procurement_event: can("src:view"),
+                                             contract: can("con:view") };
+  const linkFor = (f: Flag) => (LINK[f.entity] && allowed[f.entity] ? LINK[f.entity](f) : null);
   const [d, setD] = useState<Dash | null>(null);
   const [rules, setRules] = useState<Record<string, Record<string, string>>>({});
   const [edit, setEdit] = useState(false);
@@ -50,11 +54,11 @@ export default function Risk() {
         <div className="card"><h2>Flags ({d.flags.length})</h2><div className="tablewrap"><table><tbody>
           {[...d.flags].sort((a, b) => ["high", "medium", "low"].indexOf(a.severity) - ["high", "medium", "low"].indexOf(b.severity)).map((f, i) => <tr key={i}>
             <td><Pill status={f.severity} label={human(f.severity)} /></td>
-            <td><b>{f.title}</b><div className="small muted">{human(f.rule)} · {LINK[f.entity] ? <Link href={LINK[f.entity](f)}>{f.entity_ref}</Link> : f.entity_ref}</div>
+            <td><b>{f.title}</b><div className="small muted">{human(f.rule)} · {linkFor(f) ? <Link href={linkFor(f)!}>{f.entity_ref}</Link> : f.entity_ref}</div>
               {f.detail && <div className="small">{f.detail}</div>}</td></tr>)}
           {!d.flags.length && <tr><td className="muted">No flags. Everything within thresholds.</td></tr>}</tbody></table></div></div>
         <div className="card"><h2>Suppliers by risk</h2><div className="tablewrap"><table><thead><tr><th>Supplier</th><th className="r">Flags</th><th className="r">High</th><th className="r">Score</th></tr></thead>
-          <tbody>{d.suppliers.map((s) => <tr key={s.supplier_id}><td><Link href={`/app/suppliers/${s.supplier_id}`}>{s.supplier ?? "Supplier"}</Link></td>
+          <tbody>{d.suppliers.map((s) => <tr key={s.supplier_id}><td>{allowed.supplier ? <Link href={`/app/suppliers/${s.supplier_id}`}>{s.supplier ?? "Supplier"}</Link> : (s.supplier ?? "Supplier")}</td>
             <td className="r num">{s.flags}</td><td className="r num">{s.high}</td><td className="r num"><b>{s.score}</b></td></tr>)}
             {!d.suppliers.length && <tr><td colSpan={4} className="muted">No supplier flags.</td></tr>}</tbody></table></div>
           <p className="small muted">Score = 3 per high, 2 per medium, 1 per low flag.</p></div>

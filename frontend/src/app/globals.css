@@ -389,3 +389,73 @@ td.r,th.r{text-align:right}
 /* pilot readiness */
 .rd-ok{color:var(--green);font-size:18px}.rd-warn{color:#B7860B;font-size:18px}.rd-todo{color:var(--purple);font-size:18px}
 .rbar{height:8px;border-radius:6px;background:var(--green-50);margin-top:8px;overflow:hidden}.rbar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--leaf))}
+/* inner-page "balanced plate" parade: foods bob along the waves with the fish and now and then flip over */
+.food-swim{z-index:1}
+.food-bob{animation:foodBob 2.6s ease-in-out infinite alternate}
+.food-flip{display:block;width:auto;filter:drop-shadow(0 4px 4px rgba(0,0,0,.28));animation:foodFlip 10s ease-in-out infinite;transform-origin:50% 60%}
+@keyframes foodBob{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-7px) rotate(5deg)}}
+@keyframes foodFlip{0%,72%,100%{transform:translateY(0) rotate(0)}80%{transform:translateY(-34px) rotate(180deg)}88%{transform:translateY(-40px) rotate(360deg)}94%{transform:translateY(0) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.food-bob,.food-flip{animation:none}}
+@media (max-width:640px){.food-flip{max-height:30px}}
+
+/* ---- homepage figures (redesign) ---- */
+.livestats{gap:18px;margin-top:44px}
+.livestats .ls{--ac:var(--green);border-radius:16px;padding:20px 18px 18px;box-shadow:0 10px 28px rgba(30,42,23,.10);border:1px solid #EEF0E9;
+  transition:transform .25s ease,box-shadow .25s ease;isolation:isolate}
+.livestats .ls:before{content:"";position:absolute;right:-34px;top:-34px;width:110px;height:110px;border-radius:50%;background:var(--ac);opacity:.08;z-index:-1;transition:transform .35s ease}
+.livestats .ls:after{height:5px;background:var(--ac)}
+.livestats .ls:hover{transform:translateY(-5px);box-shadow:0 18px 36px rgba(30,42,23,.16)}
+.livestats .ls:hover:before{transform:scale(1.25)}
+.livestats .ls .ls-ico{width:44px;height:44px;border-radius:12px;font-size:19px;color:#fff!important;background:var(--ac)!important;box-shadow:0 6px 14px rgba(0,0,0,.12);margin-bottom:12px}
+.livestats .ls-num{font-family:var(--sans);font-weight:800;font-size:44px;letter-spacing:-.02em;line-height:1;color:var(--ac)}
+.livestats .ls-label{margin-top:6px;font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.ls-note{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);margin-top:12px}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#4E8A26;box-shadow:0 0 0 0 rgba(78,138,38,.55);animation:livePulse 2s infinite}
+@keyframes livePulse{70%{box-shadow:0 0 0 9px rgba(78,138,38,0)}100%{box-shadow:0 0 0 0 rgba(78,138,38,0)}}
+.glance{margin-top:46px;padding:56px 0 64px;background:radial-gradient(1200px 400px at 85% -10%,rgba(249,185,22,.18),transparent 60%),
+  linear-gradient(135deg,var(--green-900) 0%,var(--green) 70%,#5E8A3C 100%);color:#fff;position:relative;overflow:hidden}
+.glance:before{content:"";position:absolute;left:-120px;bottom:-160px;width:420px;height:420px;border-radius:50%;border:2px solid rgba(255,255,255,.08)}
+.glance-head{margin-bottom:26px}.glance-head .eyebrow{color:var(--amber)}
+.glance-head h2{color:#fff;font-size:34px;font-weight:700;margin-top:4px}
+.glance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.gl{--ac:var(--amber);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:24px 22px 22px;
+  backdrop-filter:blur(3px);transition:transform .25s ease,background .25s ease;position:relative}
+.gl:hover{transform:translateY(-5px);background:rgba(255,255,255,.13)}
+.gl-ico,.gl-ring{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;font-size:22px;color:var(--ac);margin-bottom:16px}
+.gl-ico{background:rgba(255,255,255,.12)}
+.gl-ring{background:conic-gradient(var(--ac) calc(var(--p)*1%),rgba(255,255,255,.16) 0);position:relative}
+.gl-ring:before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--green-900)}
+.gl-ring svg{position:relative}
+.gl-num{display:block;font-family:var(--sans);font-weight:800;font-size:52px;line-height:1;letter-spacing:-.02em;color:#fff}
+.gl-num:after{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--ac);margin:12px 0 10px}
+.gl-label{display:block;font-size:15px;font-weight:600;color:#E7EFE0;line-height:1.4}
+@media (max-width:1000px){.glance-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.glance-grid{grid-template-columns:1fr}.gl-num{font-size:42px}.livestats .ls-num{font-size:36px}.glance-head h2{font-size:28px}}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}.livestats .ls,.gl{transition:none}}
+
+/* ---- wider public pages: less empty margin on large screens ---- */
+.wrap{max-width:1600px;padding:0 clamp(16px,3vw,48px)}
+/* ---- food categories (redesign): photo strip in the group colour, bold name, food chips ---- */
+.foodtiles{grid-template-columns:repeat(8,minmax(0,1fr));gap:16px;margin-top:6px}
+.ftile{padding:0;gap:0;border:0;border-radius:16px;overflow:hidden;box-shadow:0 8px 22px rgba(30,42,23,.09);transition:transform .25s ease,box-shadow .25s ease}
+.ftile:hover{transform:translateY(-6px);box-shadow:0 18px 34px rgba(30,42,23,.16)}
+.ftile-top{position:relative;height:118px;background:linear-gradient(160deg,var(--fa),color-mix(in srgb,var(--fa) 70%,#1E2A17));overflow:hidden}
+.ftile-top:after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.14)}
+.ftile .ftile-ico{position:absolute;left:12px;top:12px;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.95);color:var(--fa);font-size:16px;z-index:2;
+  box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.ftile-group{position:absolute;left:54px;top:19px;font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.9);z-index:2}
+.ftile-pics{position:absolute;left:0;right:0;bottom:-6px;display:flex;justify-content:center;align-items:flex-end;z-index:1}
+.ftile-pics img{height:70px;width:auto;max-width:46%;object-fit:contain;margin:0 -8px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.30));transition:transform .35s ease;
+  transform:translateY(calc(var(--k) * 4px)) rotate(calc((var(--k) - 1) * 6deg))}
+.ftile:hover .ftile-pics img{transform:translateY(-6px) scale(1.08)}
+.ftile-body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px}
+.ftile-body b{font-family:var(--sans);font-weight:800;font-size:15.5px;line-height:1.25;color:var(--green-900)}
+.ftile-chips{display:flex;flex-wrap:wrap;gap:5px}
+.ftile-chips span{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--fa) 12%,#fff);color:color-mix(in srgb,var(--fa) 75%,#1E2A17)}
+@media (max-width:1500px){.foodtiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:820px){.foodtiles{grid-template-columns:repeat(2,minmax(0,1fr))}.ftile-top{height:100px}.ftile-pics img{height:58px}}
+@media (prefers-reduced-motion:reduce){.ftile,.ftile-pics img{transition:none}}
+.ftile-big{position:absolute;left:50%;bottom:10px;transform:translateX(-50%) rotate(-8deg);font-size:58px;color:rgba(255,255,255,.88);
+  filter:drop-shadow(0 8px 8px rgba(0,0,0,.22));transition:transform .35s ease}
+.ftile:hover .ftile-big{transform:translateX(-50%) rotate(0) scale(1.1)}
+.ftile-pics img[src*="fish"]{height:84px;max-width:80%}

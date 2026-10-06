@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.seed.legal import PRIVACY, TERMS
 from app.core.database import SessionLocal
 from app.core.security import hash_password
 from app.core.timeutil import utcnow
@@ -206,11 +207,14 @@ def seed_cms(db, admin):
         "for-suppliers": ("For farmers, cooperatives and suppliers", FOR_SUPPLIERS),
         "for-schools": ("For schools", FOR_SCHOOLS),
         "for-counties": ("For counties and partners", FOR_COUNTIES),
-        "privacy": ("Privacy notice", "*[Privacy notice aligned with the Data Protection Act, 2019 — to be supplied by legal.]*"),
-        "terms": ("Terms of use", "*[Terms of use — to be supplied by legal.]*"),
+        "privacy": ("Privacy notice", PRIVACY),
+        "terms": ("Terms of use", TERMS),
     }
     for slug, (title, body) in pages.items():
-        if db.scalar(select(Page).where(Page.slug == slug)) is None:
+        pg = db.scalar(select(Page).where(Page.slug == slug))
+        if pg is not None and slug in ("privacy", "terms") and pg.body.startswith("*[") and "to be supplied by legal" in pg.body:
+            pg.body = body          # replace the old one-line placeholder with the starter text (edited pages are left alone)
+        if pg is None:
             db.add(Page(slug=slug, title=title, body=body, status=ContentStatus.published, published_at=now,
                         published_by=admin.id))
     if db.scalar(select(NewsPost.id).limit(1)) is None:
@@ -272,6 +276,7 @@ DEMO_USERS = [
     ("approver@demo.lishebora", "Approving Officer (demo)", "approving_officer", "MAKUENI"),
     ("evaluator1@demo.lishebora", "Evaluator One (demo)", "evaluation_committee_member", "MAKUENI"),
     ("evaluator2@demo.lishebora", "Evaluator Two (demo)", "evaluation_committee_member", "MAKUENI"),
+    ("evaluator3@demo.lishebora", "Evaluator Three (demo)", "evaluation_committee_member", "MAKUENI"),
     ("administrator@demo.lishebora", "Administrator (demo)", "system_admin", None),   # signs in at /admin/sign-in
     ("editor@demo.lishebora", "Content Editor (demo)", "content_editor", None),
     ("auditor@demo.lishebora", "Auditor (demo)", "auditor", None),

@@ -1,5 +1,8 @@
 "use client";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
+import { inMenu } from "@/lib/menu";
+
 import { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck, faCircleExclamation, faTriangleExclamation, faFileExcel, faRotate } from "@fortawesome/free-solid-svg-icons";
@@ -13,6 +16,7 @@ const LABEL = { ok: "Done", warn: "Recommended", todo: "Needed before the pilot"
 
 /** Pilot readiness: live checklist of what still stands between this installation and a pilot with real data. */
 export default function Readiness() {
+  const { me, can } = useAuth();
   const [r, setR] = useState<R | null>(null);
   const [err, setErr] = useState<unknown>(null);
   const load = useCallback(() => get<R>("/system/readiness").then(setR).catch(setErr), []);
@@ -39,7 +43,7 @@ export default function Readiness() {
             <li>Download the <a href="/api/v1/system/workbook">pilot data workbook</a>. It already lists the 32 schools and 36 foods.</li>
             <li>Fill the shaded cells: enrolment, GPS and NEMIS codes (Schools), staff and their roles (Staff), and reference prices (Prices).</li>
             <li>Upload the same workbook three times under <Link href="/app/system">System &amp; onboarding</Link>: Import schools, Import staff accounts, Import reference prices. Each shows a preview first.</li>
-            <li>Nutrition officers set up the pilot menu and term dates under <Link href="/app/menus">Menus &amp; terms</Link>; finance officers add budget lines under <Link href="/app/budgets">Budgets</Link>.</li>
+            <li>Nutrition officers set up the pilot menu and term dates under <Link href="/app/menus">Menus &amp; terms</Link>; finance officers add budget lines under Budgets.</li>
             <li>Fill the website contact details and pages under <Link href="/app/website">Website content</Link>, then open supplier registration.</li>
           </ol>
         </div>
@@ -49,7 +53,7 @@ export default function Readiness() {
               <tr key={i.title}><td style={{ width: 34 }}><FontAwesomeIcon icon={ICON[i.status]} className={`rd-${i.status}`} /></td>
                 <td><b>{i.title}</b><div className="small muted">{i.detail}</div></td>
                 <td className="small" style={{ whiteSpace: "nowrap" }}>{LABEL[i.status]}</td>
-                <td className="r">{i.status !== "ok" && <Link className="btn sm" href={i.link}>Fix</Link>}</td></tr>))}</tbody></table></div></div>))}
+                <td className="r">{i.status !== "ok" && (inMenu(me, can, i.link) ? <Link className="btn sm" href={i.link}>Fix</Link> : <span className="small muted">Done by the responsible officer</span>)}</td></tr>))}</tbody></table></div></div>))}
       </>}
     </>
   );

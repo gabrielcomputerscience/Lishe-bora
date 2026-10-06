@@ -63,7 +63,8 @@ export default function Users() {
               <td className="small">{u.roles.map((r) => <div key={r.id}>{r.role_name}{r.org_name ? ` · ${r.org_name}` : " · National"}
                 {manage(u) && <button className="btn sm" style={{ padding: "0 6px", marginLeft: 6 }} aria-label="Remove role" onClick={() => revoke(u, r)}>×</button>}</div>)}</td>
               <td className="small">{fmtDateTime(u.last_login_at)}</td><td><Pill status={u.status} /></td>
-              <td className="r">{manage(u) && <button className="btn sm" onClick={() => setAssign({ user: u, role: "", org_id: "" })}>+ Role</button>}</td></tr>))}</tbody></table></div>
+              <td className="r" style={{ whiteSpace: "nowrap" }}>{manage(u) && <button className="btn sm" onClick={() => setAssign({ user: u, role: "", org_id: "" })}>+ Role</button>}
+                {me?.is_super_admin && <a className="btn sm" style={{ marginLeft: 6 }} href={`/app/features?user=${u.id}`}>Menu</a>}</td></tr>))}</tbody></table></div>
         </div>
         <div className="stack">
           {assign && <div className="card"><h3>Add role to {assign.user.full_name}</h3>

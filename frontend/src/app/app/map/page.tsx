@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBox, PageHead, useToast } from "@/components/ui";
 import { get, put } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { inMenu } from "@/lib/menu";
 import { fmtDate, human } from "@/lib/format";
 import { kg } from "@/lib/planning";
 
@@ -22,7 +23,7 @@ const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "
 const kind = (p: Pt) => (p.type === "school" ? (p.deliveries ? "served" : "waiting") : p.type);
 
 export default function MapPage() {
-  const { can } = useAuth();
+  const { me, can } = useAuth();
   const el = useRef<HTMLDivElement>(null);
   const [d, setD] = useState<MapData | null>(null);
   const [err, setErr] = useState<unknown>(null);
@@ -90,7 +91,7 @@ export default function MapPage() {
           <span className="row" style={{ gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 6, background: "#1F2A1A", display: "inline-block" }} />Vehicle (last GPS)</span></div>
       </div>
       {d && d.without_coordinates.length > 0 && <div className="card" style={{ marginTop: 16 }}><h2>Locations without coordinates</h2>
-        <p className="small muted">Staff at the location can open this page on their phone and tap “Use my location”. To type, correct or pick coordinates on a map, use <a href="/app/locations">School locations</a>.</p>
+        <p className="small muted">Staff at the location can open this page on their phone and tap “Use my location”. {inMenu(me, can, "/app/locations") && <> To type, correct or pick coordinates on a map, use <a href="/app/locations">School locations</a>.</>}</p>
         <div className="tablewrap"><table><tbody>{d.without_coordinates.map((o) => <tr key={o.id}><td>{o.name}</td><td className="small">{human(o.type)}</td>
           <td className="r">{can("md:edit", "inv:create", "agg:create", "log:approve") && <button className="btn sm" onClick={() => here(o.id)}>Use my location</button>}</td></tr>)}</tbody></table></div></div>}
       {node}

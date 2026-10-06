@@ -1,5 +1,7 @@
-/** Moving wave band along the bottom of banners, in the AATF brand colours (Brand Manual p.10), with a few fish that
- *  swim along the waves and leap out doing somersaults. Pure SVG + CSS; everything stops for reduced motion. */
+/** Moving wave band along the bottom of banners, in the AATF brand colours (Brand Manual p.10). On inner pages a "balanced
+ *  plate" parade travels along the waves: a few fish together with foods from every group (grains, legumes, vegetables,
+ *  fruits, roots, eggs and milk), bobbing and doing the odd somersault. The homepage has the food showcase instead, so it
+ *  shows no parade. Pure SVG + CSS; everything stops for reduced motion. */
 function wave(width: number, height: number, base: number, amp: number, length: number) {
   let d = `M0 ${base}`;
   for (let x = 0; x < width * 2; x += length) d += ` Q ${x + length / 4} ${base - amp} ${x + length / 2} ${base} T ${x + length} ${base}`;
@@ -16,14 +18,23 @@ const FRONT = { color: "var(--bg)", base: 92, amp: 10, len: 280, dur: 11, rev: t
 // Real fish photo (public/fish, cut from the programme's food photo) in several colours. The tail is a separate image
 // so it can flap. c = colour variant, w = width in px, swim = seconds to cross, jump = somersault rhythm, b = depth.
 const FISH = [
-  { c: "silver", w: 96, swim: 30, delay: 0, jump: 6.2, b: 22, left: false },
-  { c: "red", w: 64, swim: 24, delay: -9, jump: 4.8, b: 34, left: true },
-  { c: "black", w: 110, swim: 38, delay: -20, jump: 8.5, b: 18, left: true },
-  { c: "pink", w: 52, swim: 22, delay: -4, jump: 4.2, b: 40, left: false },
-  { c: "purple", w: 74, swim: 28, delay: -15, jump: 5.6, b: 28, left: false },
-  { c: "white", w: 60, swim: 33, delay: -26, jump: 7.1, b: 38, left: true },
-  { c: "gold", w: 82, swim: 35, delay: -11, jump: 6.8, b: 24, left: false },
-  { c: "green", w: 46, swim: 20, delay: -17, jump: 3.9, b: 44, left: true },
+  { c: "silver", w: 92, swim: 34, delay: 0, jump: 6.2, b: 22, left: false },
+  { c: "red", w: 60, swim: 30, delay: -18, jump: 4.8, b: 34, left: true },
+  { c: "gold", w: 76, swim: 36, delay: -9, jump: 6.8, b: 26, left: false },
+  { c: "purple", w: 66, swim: 32, delay: -25, jump: 5.6, b: 30, left: true },
+];
+// Foods from each group of a balanced school meal (cut-out photos in public/foods), spaced along the same waves.
+// h = height in px, flip = somersault rhythm (s). All travel left-to-right at a calm pace, offset by delay.
+const FOODS = [
+  { n: "maize-flour", alt: "Maize flour", h: 40, swim: 34, delay: -3, flip: 9, b: 30 },
+  { n: "beans", alt: "Beans", h: 38, swim: 34, delay: -6.4, flip: 11, b: 28 },
+  { n: "sukuma-wiki", alt: "Sukuma wiki", h: 44, swim: 34, delay: -10, flip: 8, b: 26 },
+  { n: "carrots", alt: "Carrots", h: 36, swim: 34, delay: -13.5, flip: 10, b: 32 },
+  { n: "bananas", alt: "Bananas", h: 42, swim: 34, delay: -17, flip: 12, b: 28 },
+  { n: "eggs", alt: "Eggs", h: 40, swim: 34, delay: -20.5, flip: 9.5, b: 30 },
+  { n: "milk", alt: "Milk", h: 46, swim: 34, delay: -24, flip: 13, b: 26 },
+  { n: "sweet-potatoes", alt: "Sweet potatoes", h: 36, swim: 34, delay: -27.5, flip: 10.5, b: 30 },
+  { n: "mangoes", alt: "Mangoes", h: 38, swim: 34, delay: -31, flip: 8.5, b: 28 },
 ];
 
 function Layer({ l }: { l: typeof FRONT }) {
@@ -62,12 +73,20 @@ function Showcase({ scenes }: { scenes: ShowcaseScene[] }) {
   );
 }
 
-export function HeroWaveBand({ showcase }: { showcase?: ShowcaseScene[] } = {}) {
+export function HeroWaveBand({ showcase, parade = true }: { showcase?: ShowcaseScene[]; parade?: boolean } = {}) {
   return (
     <div className="hero-band" aria-hidden="true">
       <svg className="band-layer" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">{BACK.map((l, i) => <Layer key={i} l={l} />)}</svg>
       {!!showcase?.length && <Showcase scenes={showcase} />}
-      <div className="fishes">
+      {parade && <div className="fishes">
+        {FOODS.map((f, i) => (
+          <div key={f.n} className="fish-swim food-swim" style={{ bottom: f.b, animationDuration: `${f.swim}s`, animationDelay: `${f.delay}s` } as React.CSSProperties}>
+            <div className="food-bob" style={{ animationDelay: `${-i * 0.7}s` } as React.CSSProperties}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="food-flip" src={`/foods/${f.n}.webp`} alt="" loading="lazy"
+                   style={{ height: f.h, animationDuration: `${f.flip}s`, animationDelay: `${-i * 1.3}s` } as React.CSSProperties} />
+            </div>
+          </div>))}
         {FISH.map((f, i) => (
           <div key={i} className={`fish-swim ${f.left ? "left" : ""}`}
                style={{ bottom: f.b, animationDuration: `${f.swim}s`, animationDelay: `${f.delay}s` } as React.CSSProperties}>
@@ -76,7 +95,7 @@ export function HeroWaveBand({ showcase }: { showcase?: ShowcaseScene[] } = {}) 
               <Fish c={f.c} />
             </div>
           </div>))}
-      </div>
+      </div>}
       <svg className="band-layer" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"><Layer l={FRONT} /></svg>
     </div>
   );

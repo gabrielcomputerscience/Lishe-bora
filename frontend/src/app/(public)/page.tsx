@@ -8,7 +8,7 @@ import { NewsCard } from "@/components/NewsCard";
 import { NoticeTable } from "@/components/NoticeTable";
 import { ReachMap, type Reach } from "@/components/ReachMap";
 import { colourFor } from "@/lib/food";
-import { faHandHoldingHeart, faLandmark, faLock, faMobileScreen, faMoneyBillWave, faQrcode, faScaleBalanced, faSchool, faWheatAwn, foodIcon, LIVE_ICON } from "@/lib/icons";
+import { faHandHoldingHeart, faLandmark, faLock, faMobileScreen, faMoneyBillWave, faQrcode, faScaleBalanced, faSchool, faWheatAwn, foodIcon, glanceIcon, LIVE_ICON } from "@/lib/icons";
 import { publicGet } from "@/lib/server";
 import { fontsHref, styleOf, type TextStyle } from "@/lib/textStyle";
 import type { FoodCategory, NewsItem, Notice } from "@/lib/types";
@@ -42,6 +42,9 @@ const FEATURES = [
   ["Inclusive by design", "Women-, youth- and PWD-led enterprises can declare their status, so inclusion can be monitored.", faHandHoldingHeart],
 ] as const;
 const ACCENT = ["#507435", "#AB822D", "#75BA43", "#912E91", "#F9B916"];
+// AATF brand colours (Brand Manual p.10) for the live figures and the programme figures
+const LIVE_AC = ["#507435", "#AB822D", "#4E8A26", "#B7860B", "#912E91"];
+const GLANCE_AC = ["#F9B916", "#75BA43", "#F9B916", "#E9A6E9"];
 
 export default async function HomePage() {
   const [d, cats, reach, faq, bg] = await Promise.all([
@@ -69,21 +72,34 @@ export default async function HomePage() {
           </div>
         </div>
         <HeroMedia m={bg.home_hero_media} /></div>
-        <HeroWaveBand showcase={showcase} />
+        <HeroWaveBand showcase={showcase} parade={false} />
       </section>
 
       {!!d?.live?.length && (<>
         <section className="wrap livestats" aria-label="LisheBora today">
-          {d.live.map((s) => (
-            <div key={s.key} className="ls"><span className="ls-ico" aria-hidden="true"><FontAwesomeIcon icon={LIVE_ICON[s.key]} /></span>
-              <b><CountUp to={s.value} /></b><span className="ls-label">{s.label}</span></div>))}
+          {d.live.map((s, i) => (
+            <div key={s.key} className="ls" style={{ ["--ac" as string]: LIVE_AC[i % LIVE_AC.length] } as React.CSSProperties}>
+              <span className="ls-ico" aria-hidden="true"><FontAwesomeIcon icon={LIVE_ICON[s.key]} /></span>
+              <b className="ls-num"><CountUp to={s.value} /></b><span className="ls-label">{s.label}</span></div>))}
         </section>
-        <p className="wrap small muted ls-note">Live figures from the platform, updated automatically.</p>
+        <p className="wrap ls-note"><span className="live-dot" aria-hidden="true" /> Live figures from the platform, updated automatically.</p>
       </>)}
       {d?.stats && (
-        <section className="wrap sec" style={{ paddingBottom: 0 }}>
-          <h2 style={{ marginBottom: 14 }}>Programme at a glance</h2>
-          <div className="stats flat">{d.stats.items.map((s) => <div key={s.label}><b style={styleOf(ss.value)}>{s.value}</b><span style={styleOf(ss.label)}>{s.label}</span></div>)}</div>
+        <section className="glance" aria-label="Programme at a glance">
+          <div className="wrap">
+            <div className="glance-head"><span className="eyebrow">STEP School Feeding Project</span><h2 style={styleOf(ss.title)}>Programme at a glance</h2></div>
+            <div className="glance-grid">{d.stats.items.map((s, i) => {
+              const pct = /^\s*(\d{1,3}(?:\.\d+)?)\s*%\s*$/.exec(s.value);
+              return (
+                <div key={s.label} className="gl" style={{ ["--ac" as string]: GLANCE_AC[i % GLANCE_AC.length] } as React.CSSProperties}>
+                  {pct ? <span className="gl-ring" style={{ ["--p" as string]: Math.min(100, parseFloat(pct[1])) } as React.CSSProperties} aria-hidden="true">
+                    <FontAwesomeIcon icon={glanceIcon(s.label)} /></span>
+                    : <span className="gl-ico" aria-hidden="true"><FontAwesomeIcon icon={glanceIcon(s.label)} /></span>}
+                  <b className="gl-num" style={styleOf(ss.value)}>{s.value}</b>
+                  <span className="gl-label" style={styleOf(ss.label)}>{s.label}</span>
+                </div>);
+            })}</div>
+          </div>
         </section>
       )}
 
@@ -108,10 +124,22 @@ export default async function HomePage() {
         <section className="bgsec hasbg" style={bgStyle(bg.home_food, false)}><BgVideo b={bg.home_food} dark={false} /><div className="wrap sec">
           <div className="sechead"><span className="kicker">Food &amp; nutrition</span><h2>{cats.length} food categories, one balanced plate</h2>
             <p className="muted" style={{ margin: "6px 0 0" }}>Menus, demand and supplier prequalification all use the food categories of the programme&apos;s school survey.</p></div>
-          <div className="foodtiles">{cats.map((c) => (
-            <div key={c.key} className="ftile" style={{ ["--fa" as string]: colourFor(c.group) }}>
-              <span className="ftile-ico" aria-hidden="true"><FontAwesomeIcon icon={foodIcon(c.key)} /></span><b>{c.label}</b>
-              <span className="small muted">{c.commodities.map((x) => x.name).join(", ") || c.group}</span></div>))}</div>
+          <div className="foodtiles">{cats.map((c) => {
+            const pics = c.commodities.filter((x) => FOOD_IMAGE[x.code]).slice(0, 3);
+            return (
+              <div key={c.key} className="ftile" style={{ ["--fa" as string]: colourFor(c.group) }}>
+                <div className="ftile-top">
+                  <span className="ftile-ico" aria-hidden="true"><FontAwesomeIcon icon={foodIcon(c.key)} /></span>
+                  <span className="ftile-group">{c.group}</span>
+                  {!pics.length && <span className="ftile-big" aria-hidden="true"><FontAwesomeIcon icon={foodIcon(c.key)} /></span>}
+                  <div className="ftile-pics" aria-hidden="true">{pics.map((x, k) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={x.code} src={FOOD_IMAGE[x.code]} alt="" loading="lazy" style={{ ["--k" as string]: k } as React.CSSProperties} />))}</div>
+                </div>
+                <div className="ftile-body"><b>{c.label}</b>
+                  <div className="ftile-chips">{(c.commodities.length ? c.commodities.map((x) => x.name) : [c.group]).map((n) => <span key={n}>{n}</span>)}</div></div>
+              </div>);
+          })}</div>
         </div></section>
       )}
 

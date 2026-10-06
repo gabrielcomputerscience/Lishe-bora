@@ -18,6 +18,7 @@ from app.schemas.auth import (ChangePasswordIn, ForgotIn, LoginIn, MeOut, MfaIn,
                               ResetIn, RoleGrant, SessionOut, TokenOut, VerifyPhoneIn)
 from app.schemas.common import Msg
 from app.services import audit, otp
+from app.services.menu import menu_for
 from app.services.admin_access import is_admin_account, not_an_admin, use_admin_sign_in
 from app.services.auth import (check_password_login, clear_cookies, ensure_can_sign_in, find_user, needs_mfa,
                                rotate, start_session)
@@ -237,7 +238,7 @@ def me(p: Principal = Depends(current_principal), db: Session = Depends(get_db))
     return MeOut(id=u.id, full_name=u.full_name, email=u.email, phone=u.phone, status=u.status.value,
                  preferred_language=u.preferred_language, mfa_enabled=needs_mfa(u), roles=grants,
                  permissions=sorted(p.grants), supplier_id=sup, is_admin=is_admin_account(u),
-                 is_super_admin="super_admin" in {g.role for g in grants})
+                 is_super_admin="super_admin" in {g.role for g in grants}, menu=menu_for(db, u))
 
 
 @router.patch("/me", response_model=Msg)

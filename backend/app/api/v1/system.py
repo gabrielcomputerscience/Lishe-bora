@@ -416,7 +416,7 @@ def readiness(p: Principal = Depends(require_any("iam:edit", "md:edit")), db: Se
     add("Planning", "An approved (non-demo) menu", menus > 0, "Nutrition officers create and approve the pilot menu under Menus & terms." if not menus
         else f"{menus} approved menus.", "/app/menus")
     # website
-    placeholder_pages = [pg.title for pg in db.scalars(select(Page)).all() if "*[" in (pg.body or "") or "to be supplied" in (pg.body or "")]
+    placeholder_pages = [pg.title for pg in db.scalars(select(Page)).all() if "*[" in (pg.body or "") or "to be supplied" in (pg.body or "") or "Draft for the pilot" in (pg.body or "")]
     add("Website", "Pages without placeholder text", not placeholder_pages, ("Still has placeholders: " + ", ".join(placeholder_pages)) if placeholder_pages
         else "All pages complete.", "/app/website")
     site = db.scalar(select(SiteBlock).where(SiteBlock.key == "site"))

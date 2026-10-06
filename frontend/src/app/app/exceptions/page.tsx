@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ErrorBox, PageHead, Pill, useToast } from "@/components/ui";
 import { post, get } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { inMenu } from "@/lib/menu";
 import { fmtDateTime, human } from "@/lib/format";
 import type { Case } from "@/lib/fulfilment";
 
@@ -12,7 +13,7 @@ const LINK: Record<string, (c: Case) => string> = {
 };
 
 export default function Exceptions() {
-  const { can } = useAuth();
+  const { me, can } = useAuth();
   const [rows, setRows] = useState<Case[]>([]);
   const [filter, setFilter] = useState("open,in_progress");
   const [text, setText] = useState<Record<string, string>>({});
@@ -36,7 +37,7 @@ export default function Exceptions() {
           {c.overdue && <Pill status="rejected" label="Overdue" />}<Pill status={c.status} /></div>
         <p className="small" style={{ margin: "6px 0" }}>{c.detail}</p>
         <p className="small muted">{human(c.category)} · {c.org ?? ""}{c.supplier ? ` · ${c.supplier}` : ""} · owner {human(c.owner_role)} · raised {fmtDateTime(c.created_at)} · due {fmtDateTime(c.due_at)}
-          {LINK[c.entity] && <> · <Link href={LINK[c.entity](c)}>{c.entity_ref}</Link></>}</p>
+          {LINK[c.entity] && (inMenu(me, can, LINK[c.entity](c)) ? <> · <Link href={LINK[c.entity](c)}>{c.entity_ref}</Link></> : <> · {c.entity_ref}</>)}</p>
         {c.corrective_action && <div className="alert info small">Corrective action: {c.corrective_action}</div>}
         {c.resolution && <div className="alert info small">Resolution: {c.resolution} · {c.resolved_by} · {fmtDateTime(c.resolved_at)}</div>}
         {(c.status === "open" || c.status === "in_progress") && (can("rsk:create", "rsk:edit", "rsk:approve")) && <div className="row" style={{ marginTop: 8 }}>

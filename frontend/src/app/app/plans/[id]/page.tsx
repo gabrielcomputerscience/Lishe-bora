@@ -28,7 +28,8 @@ export default function PlanDetail() {
   const { toast, node } = useToast();
   const hydrate = (x: Plan) => { setP(x); setBl(x.budget_line_id ?? ""); setMethod(x.method); setPrices(Object.fromEntries(x.lines.map((l) => [l.id, l.unit_price == null ? "" : String(l.unit_price)]))); };
   const load = useCallback(() => get<Plan>(`/plans/${id}`).then(hydrate).catch(setErr), [id]);
-  useEffect(() => { load(); get<BL[]>("/budget-lines").then(setLines).catch(() => {}); }, [load]);
+  const budView = can("bud:view");
+  useEffect(() => { load(); if (budView) get<BL[]>("/budget-lines").then(setLines).catch(() => {}); }, [load, budView]);
   if (!p) return <ErrorBox error={err} />;
   const editable = can("src:edit") && ["draft", "returned"].includes(p.status);
   const run = async (fn: () => Promise<unknown>, ok: string) => { setErr(null); try { await fn(); toast(ok); await load(); } catch (e) { setErr(e); } };

@@ -5,48 +5,7 @@ import { useEffect, useState } from "react";
 import { get } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Logo, Vein } from "./Brand";
-
-type Item = { href: string; label: string; group: string; show: (can: (...p: string[]) => boolean, hasSupplier: boolean) => boolean };
-const NAV: Item[] = [
-  { href: "/app", label: "Dashboard", group: "Overview", show: () => true },
-  { href: "/app/approvals", label: "My approvals", group: "Overview", show: () => true },
-  { href: "/app/my-supplier", label: "My supplier profile", group: "Supplier", show: (_c, s) => s },
-  { href: "/app/demand", label: "School demand", group: "Plan", show: (c) => c("dem:view") },
-  { href: "/app/locations", label: "School locations", group: "Plan", show: (c, s) => c("md:edit", "inv:create", "agg:create", "log:approve") && !s },
-  { href: "/app/menus", label: "Menus & terms", group: "Plan", show: (c, s) => c("dem:view", "md:view") && !s },
-  { href: "/app/plans", label: "Procurement plans", group: "Plan", show: (c, s) => c("src:view", "bud:view", "dem:approve") && !s },
-  { href: "/app/budgets", label: "Budgets", group: "Plan", show: (c) => c("bud:view") },
-  { href: "/app/opportunities", label: "Opportunities", group: "Supplier", show: (_c, s) => s },
-  { href: "/app/orders", label: "My contracts & orders", group: "Supplier", show: (_c, s) => s },
-  { href: "/app/suppliers", label: "Supplier registry", group: "Source", show: (c, s) => c("sup:view") && !s },
-  { href: "/app/sourcing", label: "Sourcing events", group: "Source", show: (c, s) => c("src:view") && !s },
-  { href: "/app/evaluations", label: "My evaluations", group: "Source", show: (c) => c("eva:evaluate") },
-  { href: "/app/contracts", label: "Contracts & POs", group: "Source", show: (c, s) => c("con:view") && !s },
-  { href: "/app/aggregation", label: "Aggregation & intake", group: "Fulfil", show: (c) => c("agg:create", "agg:submit") },
-  { href: "/app/quality", label: "Quality inspection", group: "Fulfil", show: (c) => c("agg:verify") },
-  { href: "/app/inventory", label: "Inventory", group: "Fulfil", show: (c) => c("inv:view") },
-  { href: "/app/dispatch", label: "Dispatch", group: "Fulfil", show: (c) => c("log:create") },
-  { href: "/app/deliveries", label: "Deliveries", group: "Fulfil", show: (c) => c("log:view") },
-  { href: "/app/trace", label: "Traceability", group: "Fulfil", show: (c) => c("agg:view", "log:view", "meal:view") },
-  { href: "/app/invoices", label: "Invoices & payments", group: "Performance & finance", show: (c) => c("fin:view") },
-  { href: "/app/complaints", label: "Complaints", group: "Performance & finance", show: (c) => c("cmp:view", "cmp:create") },
-  { href: "/app/performance", label: "Supplier performance", group: "Performance & finance", show: (c) => c("sup:view", "cmp:view", "meal:view") },
-  { href: "/app/integrations", label: "Payment integrations", group: "Performance & finance", show: (c, s) => c("fin:verify", "fin:pay", "fin:export") && !s },
-  { href: "/app/insights", label: "Forecasts & prices", group: "Performance & finance", show: (c, s) => c("inv:view", "meal:view") && !s },
-  { href: "/app/map", label: "Programme map", group: "Performance & finance", show: (c, s) => c("meal:view", "log:view", "rsk:view") && !s },
-  { href: "/app/meal", label: "MEAL dashboard", group: "Performance & finance", show: (c, s) => c("meal:view") && !s },
-  { href: "/app/admin", label: "Admin console", group: "Administration", show: (c) => c("iam:edit", "cms:approve") },
-  { href: "/app/readiness", label: "Pilot readiness", group: "Administration", show: (c) => c("iam:edit", "md:edit") },
-  { href: "/app/users", label: "Users & roles", group: "Administration", show: (c) => c("iam:view") },
-  { href: "/app/master-data", label: "Master data", group: "Administration", show: (c) => c("md:edit") },
-  { href: "/app/system", label: "System & onboarding", group: "Administration", show: (c) => c("iam:edit", "md:edit") },
-  { href: "/app/website", label: "Website content", group: "Administration", show: (c) => c("cms:view") },
-  { href: "/app/exceptions", label: "Exceptions", group: "Oversight", show: (c) => c("rsk:view") },
-  { href: "/app/risk", label: "Risk dashboard", group: "Oversight", show: (c, s) => c("rsk:view") && !s },
-  { href: "/app/audit", label: "Audit trail", group: "Oversight", show: (c) => c("aud:view") },
-  { href: "/app/notifications", label: "Notifications", group: "Account", show: () => true },
-  { href: "/app/profile", label: "My profile & security", group: "Account", show: () => true },
-];
+import { menuFor, outsideMenu } from "@/lib/menu";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { me, loading, can, signOut } = useAuth();
@@ -65,10 +24,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => setOpen(false), [path]);
   if (loading || !me) return <div className="wrap sec muted">Loading…</div>;
 
-  let items = NAV.filter((i) => i.show(can, !!me.supplier_id));
-  if (me.is_admin) {   // administrator accounts: administration first, operational pages are read-only views
-    items = [...items.filter((i) => i.group === "Administration"), ...items.filter((i) => i.group !== "Administration" && i.href !== "/app" && i.href !== "/app/approvals")];
-  }
+  const items = menuFor(me, can);
+  const hidden = outsideMenu(path, items);
   const initials = me.full_name.split(" ").filter((w) => /^[A-Za-z]/.test(w)).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const primary = me.roles[0];
   let grp = "";
@@ -102,7 +59,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <Vein stroke="#F9B916" width={9} />
         </nav>
-        <main className="main" id="main">{children}</main>
+        <main className="main" id="main">{hidden ? (
+          <div className="card" style={{ maxWidth: 560 }}><h2>Not part of your account</h2>
+            <p className="muted">This page is not used in your role, so it is not in your menu. If you need it for your work, ask the administrator to add the right role to your account.</p>
+            <Link className="btn" href={me.is_admin ? "/app/admin" : "/app"}>Back to my dashboard</Link></div>) : children}</main>
       </div>
     </>
   );

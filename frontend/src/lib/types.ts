@@ -2,7 +2,7 @@ export type RoleGrant = { role: string; role_name: string; org_id: string | null
 export type Me = {
   id: string; full_name: string; email: string | null; phone: string | null; status: string;
   preferred_language: string; mfa_enabled: boolean; roles: RoleGrant[]; permissions: string[]; supplier_id: string | null;
-  is_admin: boolean; is_super_admin: boolean;
+  is_admin: boolean; is_super_admin: boolean; menu?: string[];
 };
 export type TokenOut = { access_token?: string | null; mfa_required: boolean; mfa_token?: string | null; sent_to?: string | null; dev_code?: string | null };
 export type Notice = { reference: string; title: string; method: string; county: string | null; eligibility: string; closes_at: string; status: string };

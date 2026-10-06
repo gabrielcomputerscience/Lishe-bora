@@ -285,6 +285,20 @@ Rules (in `backend/app/services/admin_access.py`):
 - Only a Super Administrator can create an administrator (*Users & roles → Invite*, choose *Administrator*) or change an administrator's account. Administrator roles cannot be given through the CSV import.
 - Every administrator sign-in is recorded in the audit trail (`LOGIN_ADMIN`); a refused attempt is recorded as `ADMIN_LOGIN_REFUSED`.
 
+## Pilot test with demo data (Makueni County, Kalulini school)
+
+Before real users are invited, AATF staff test every process with the demo accounts (password `Demo!2026pass`).
+
+1. `scripts\use-demo.bat`, then `scripts\start-test-server.bat` (local test server: opens the API, worker and website windows,
+   allows the office-network address and port 3000, and prints the address colleagues open, e.g. `http://192.168.x.x:3000`). Staff sign in at `/sign-in`; the administrator at `/admin/sign-in`. In demo mode the
+   one-time codes are shown on screen.
+2. Follow `docs/pilot_test/LisheBora_Pilot_Test_Script.xlsx`: 83 steps in 15 stages (menu → demand → budget and plan → supplier
+   onboarding → sourcing, bids, evaluation and award → order → intake and inspection → warehouse → dispatch and e-POD → school stock →
+   invoice and payment → complaints and recall → monitoring and audit → website). Record Pass/Fail and log issues in the workbook.
+3. `scripts\run-simulation.bat` runs the same cycle automatically on a throw-away database and writes
+   `docs/pilot_test/LisheBora_Simulation_Report.xlsx`; it also saves the finished cycle as `backend\lishebora_example.db`
+   (`scripts\use-example.bat` to browse it).
+
 ## Pilot with real data
 
 1. **Create the pilot database** (keeps the demo database for training): stop the backend and run `scripts\setup-pilot.bat`.

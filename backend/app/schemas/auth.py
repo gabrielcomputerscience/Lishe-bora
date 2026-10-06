@@ -125,6 +125,7 @@ class MeOut(BaseModel):
     supplier_id: uuid.UUID | None = None
     is_admin: bool = False            # administrator account: uses the administration sign-in
     is_super_admin: bool = False
+    menu: list[str] = []              # portal pages this account sees (role defaults + Super Administrator changes)
 
 
 class ProfileIn(BaseModel):
